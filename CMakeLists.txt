@@ -14,11 +14,15 @@ elseif(MSVC)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
 	set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} /DWIN32")
 endif()
+
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SOURCES 
 	${CMAKE_SOURCE_DIR}/src/main.cpp
+	${CMAKE_SOURCE_DIR}/src/Zoomer.cpp
+	${CMAKE_SOURCE_DIR}/src/ProgramWindow.cpp
 )
 
 
@@ -30,6 +34,10 @@ add_executable(
 		${SOURCES}
 		${DEPENDENCIES}
 )
+# Add resource.rc to application
+set(RESOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/resources.rc)
+target_sources(${PROJECT_NAME} PRIVATE ${RESOURCE_FILE})
+
 message(STATUS "Project name: ${PROJECT_NAME}")
 
 target_include_directories(
@@ -47,18 +55,18 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 # Libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    kernel32.lib
-    user32.lib
-    gdi32.lib
-    winspool.lib
-    comdlg32.lib
-    advapi32.lib
-    shell32.lib
-    ole32.lib
-    oleaut32.lib
-    uuid.lib
-    odbc32.lib
-    odbccp32.lib
+	kernel32.lib
+	user32.lib
+	gdi32.lib
+	winspool.lib
+	comdlg32.lib
+	advapi32.lib
+	shell32.lib
+	ole32.lib
+	oleaut32.lib
+	uuid.lib
+	odbc32.lib
+	odbccp32.lib
 )
 
 
