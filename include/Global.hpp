@@ -1,8 +1,14 @@
+#include <wtypes.h>
+
+
+struct ZoomContext;
+
 class Global
 {
-	Global() = default;
+	Global();
 
 	LONG _zoom = 0.f;
+	ZoomContext* _zoomContext;
 public:
 	Global(const Global&) = delete;
 	Global& operator = (const Global&) = delete;
@@ -16,6 +22,10 @@ public:
 	LONG& getZoom()
 	{
 		return _zoom;
+	}
+	ZoomContext& getZoomContext() noexcept
+	{
+		return *_zoomContext;
 	}
 	
 };

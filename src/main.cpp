@@ -3,10 +3,9 @@
 #include "Global.hpp"
 #include "CheckPolicy.hpp"
 #include "ProgramWindow.hpp"
+#include "ZoomContext.hpp"
 
-
-LONG zoom = 0;
-
+HHOOK hMouseHook;
 HINSTANCE hInst;
 HWND globalHwnd = NULL;
 
@@ -33,6 +32,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, LPCSTR szWindowClass, LPCST
 	return TRUE;
 }
 
+void InitZoomContext()
+{
+	ZoomContext& zoomContext = Global::getInstance().getZoomContext();
+	zoomContext.screenW = GetSystemMetrics(SM_CXSCREEN);
+	zoomContext.screenH = GetSystemMetrics(SM_CYSCREEN);
+	
+	zoomContext.zoomRect.left = zoomContext.zoomRect.top = 0;
+	zoomContext.zoomRect.right = zoomContext.screenW;
+	zoomContext.zoomRect.bottom = zoomContext.screenH;
+}
+
 
 
 int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
@@ -42,6 +52,12 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 {
 	hInst = hInstance;
 	if (CheckIsRunning())
+		exit(1);
+
+	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+	InitZoomContext();
+	// Magnifer API initialization
+	if(!MagInitialize())
 		exit(1);
 
 	MSG  msg;
@@ -66,10 +82,12 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 		exit(-1);
 	}
 	
-	const char* windowTitle = "234";
+	const char* windowTitle = "magnifying-glass";
 	if (!InitInstance(hInstance, nCmdShow, wcex.lpszClassName, windowTitle))
 		exit(-1);
-	MessageBoxExW(globalHwnd, L"dfgdfgdfg", L"dfgdfgdfg", MB_OK, NULL);
+
+
+	//hMouseHook
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	{

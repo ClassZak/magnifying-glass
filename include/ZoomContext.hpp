@@ -2,18 +2,17 @@
 
 struct ZoomContext
 {
-	// Захват
-	HDC		screenDC;
-	HDC		memDC;
-	HBITMAP	srcBitmap;
-	HBITMAP	oldBitmap;
+	// Handles
+	HDC		screenDC = NULL;
+	HDC		memDC = NULL;
+	HBITMAP	srcBitmap = NULL;
+	HBITMAP	oldBitmap = NULL;
 
 	int screenW;
 	int screenH;
 
-	// Логика лупы
-	volatile LONG zoom;
-	volatile LONG srcX;
-	volatile LONG srcY;
-
+	// Logic
+	volatile LONG zoom = 1U;
+	volatile RECT zoomRect {NULL};
+	POINT mousePos {NULL};
 };
