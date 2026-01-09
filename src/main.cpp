@@ -1,3 +1,4 @@
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "pch.hpp"
 #include "CheckIsRunning.hpp"
 #include "Global.hpp"
@@ -9,28 +10,8 @@ HHOOK hMouseHook;
 HINSTANCE hInst;
 HWND globalHwnd = NULL;
 
-
-
-#define DEFAULT_WINDOW_WIDTH	600
-#define DEFAULT_WINDOW_HEIGHT	400
-
-
-
-
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, LPCSTR szWindowClass, LPCSTR szTitle)
-{
-	HWND hWnd = CreateWindowEx(0, szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, nullptr, nullptr, hInstance, nullptr);
-	globalHwnd = hWnd;
-
-	if (!hWnd)
-		return FALSE;
-
-	ShowWindow(hWnd, nCmdShow);
-	UpdateWindow(hWnd);
-
-	return TRUE;
-}
+#define WINDOW_CLASSNAME "magnifying-glass"
+#define WINDOW_NAME WINDOW_CLASSNAME
 
 void InitZoomContext()
 {
@@ -43,24 +24,8 @@ void InitZoomContext()
 	zoomContext.zoomRect.bottom = zoomContext.screenH;
 }
 
-
-
-int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
-						_In_opt_ HINSTANCE hPrevInstance,
-						_In_ LPWSTR lpCmdLine,
-						_In_ int nCmdShow)
+ATOM RegisterWindowClass(HINSTANCE hInstance)
 {
-	hInst = hInstance;
-	if (CheckIsRunning())
-		exit(1);
-
-	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-	InitZoomContext();
-	// Magnifer API initialization
-	if(!MagInitialize())
-		exit(1);
-
-	MSG  msg;
 	WNDCLASSEX wcex = { 0 };
 
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -68,26 +33,58 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 	wcex.lpfnWndProc = ProgramWindowWnd::ProgramWindowWndProc;
 	wcex.hInstance = hInstance;
 	wcex.hCursor = LoadCursor(0, IDC_ARROW);
-	wcex.hbrBackground = GetSysColorBrush(COLOR_BTNFACE);
-	wcex.lpszClassName = "magnifying-glass";
+	wcex.hbrBackground = (HBRUSH)(1 + COLOR_BTNFACE);
+	wcex.lpszClassName = WINDOW_CLASSNAME;
 
-	try
-	{
-		if(!RegisterClassEx(&wcex))
-			throw std::runtime_error(std::format("Error of register window class {}", GetLastError()));
-	}
-	catch (std::exception& e)
-	{
-		MessageBox(NULL, e.what(), "Error", MB_ICONERROR | MB_OK);
-		exit(-1);
-	}
+	return RegisterClassEx(&wcex);
+}
+
+int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
+						_In_opt_ HINSTANCE hPrevInstance,
+						_In_ LPWSTR lpCmdLine,
+						_In_ int nCmdShow)
+{
+	ZoomContext& zoomContext = Global::getInstance().getZoomContext();
+	hInst = hInstance;
+	if (CheckIsRunning())
+		return 1;
 	
-	const char* windowTitle = "magnifying-glass";
-	if (!InitInstance(hInstance, nCmdShow, wcex.lpszClassName, windowTitle))
-		exit(-1);
+	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+	InitZoomContext();
+	// Magnifer API initialization
+	if(!MagInitialize())
+		return 1;
 
+	MSG  msg;
+	ATOM aRegistrationResult = RegisterWindowClass(hInstance);
+	globalHwnd = CreateWindowEx
+	(
+		WS_EX_LAYERED | // Required style to render the magnification correctly
+		WS_EX_TOPMOST | // Always-on-top
+		WS_EX_TRANSPARENT, // Click-through
+		WINDOW_CLASSNAME,
+		WINDOW_NAME,
+		WS_CLIPCHILDREN | // For no drawing inside main window
+		WS_POPUP | // Removes titlebar and borders - simply a bare window
+		WS_BORDER, // Adds a 1-pixel border for tracking the edges - aesthetic
+		0,0,
+		zoomContext.screenW, zoomContext.screenH,
+		NULL, NULL, hInstance, NULL
+	);
 
-	//hMouseHook
+	if (globalHwnd == NULL)
+	{
+		std::string message = std::format("Error code: {}", GetLastError());
+		MessageBox(NULL, message.c_str(), "Error", MB_ICONERROR | MB_OK);
+		MagUninitialize();
+		return 1;
+	}
+
+	// Make the window fully opaque.
+	SetLayeredWindowAttributes(globalHwnd, 0, 255, LWA_ALPHA);
+	ShowWindow(globalHwnd, nCmdShow);
+	UpdateWindow(globalHwnd);
+	
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	{

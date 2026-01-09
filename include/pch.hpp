@@ -11,6 +11,10 @@
 #include <shellapi.h>
 #include <shlwapi.h>
 #include <stdio.h>
+#include <wincodec.h>
+#include <magnification.h> 
+#include <threadpoolapiset.h>
+#include <shellapi.h>
 
 
 // WinRT
