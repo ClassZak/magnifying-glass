@@ -23,7 +23,8 @@ set(SOURCES
 	${CMAKE_SOURCE_DIR}/src/main.cpp
 	${CMAKE_SOURCE_DIR}/src/Zoomer.cpp
 	${CMAKE_SOURCE_DIR}/src/Global.cpp
-	${CMAKE_SOURCE_DIR}/src/ProgramWindow.cpp
+	${CMAKE_SOURCE_DIR}/src/MenuWindow.cpp
+	${CMAKE_SOURCE_DIR}/src/RenderWindow.cpp
 )
 
 

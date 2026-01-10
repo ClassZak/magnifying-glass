@@ -9,7 +9,7 @@
 
 
 
-class ProgramWindowWnd
+class MenuWindow
 {
 	std::unordered_map<std::string, std::function<void()>> _functions;
 private:
@@ -35,6 +35,6 @@ private:
 	}
 
 public:
-	ProgramWindowWnd();
-	static LRESULT CALLBACK ProgramWindowWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	MenuWindow() = default;
+	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 };

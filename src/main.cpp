@@ -3,13 +3,19 @@
 #include "CheckIsRunning.hpp"
 #include "Global.hpp"
 #include "CheckPolicy.hpp"
-#include "ProgramWindow.hpp"
+#include "MenuWindow.hpp"
+#include "RenderWindow.hpp"
 #include "ZoomContext.hpp"
 
-HWND globalHwnd = NULL;
+HWND hGlobalRenderWindow = NULL;
+HWND hGlobalMenuWindow = NULL;
 
-#define WINDOW_CLASSNAME "magnifying-glass"
-#define WINDOW_NAME WINDOW_CLASSNAME
+
+#define RENDER_WINDOW_CLASSNAME "render-window"
+#define RENDER_WINDOW_NAME RENDER_WINDOW_CLASSNAME
+#define MENU_WINDOW_CLASSNAME "menu-window"
+#define MENU_WINDOW_NAME RENDER_WINDOW_CLASSNAME
+
 
 void InitZoomContext()
 {
@@ -35,17 +41,22 @@ void InitZoomContext()
 	zoomContext.isRunning = TRUE;
 }
 
-ATOM RegisterWindowClass(HINSTANCE hInstance)
+
+static inline void ShowError(const std::string& errorMessage)
+{
+	MessageBox(NULL, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
+}
+static inline ATOM RegisterWindowClass(HINSTANCE hInstance, WNDPROC wndProc, LPCSTR lpClassName)
 {
 	WNDCLASSEX wcex = { 0 };
 
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc = ProgramWindowWnd::ProgramWindowWndProc;
+	wcex.lpfnWndProc = wndProc;
 	wcex.hInstance = hInstance;
 	wcex.hCursor = LoadCursor(0, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(1 + COLOR_BTNFACE);
-	wcex.lpszClassName = WINDOW_CLASSNAME;
+	wcex.lpszClassName = lpClassName;
 
 	return RegisterClassEx(&wcex);
 }
@@ -66,7 +77,7 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 		exit(EXIT_FAILURE);
 	}
 
-	HDC windowDC = GetDC(globalHwnd);
+	HDC windowDC = GetDC(hGlobalRenderWindow);
 
 	timeBeginPeriod(1);
 	while (zoomContext->isRunning)
@@ -83,7 +94,7 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 		);
 
 		RECT rc;
-		GetClientRect(globalHwnd, &rc);
+		GetClientRect(hGlobalRenderWindow, &rc);
 		long& targetW = rc.right, targetH = rc.bottom;
 		LONG zoom = zoomContext->zoom;
 
@@ -114,7 +125,7 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 	timeEndPeriod(1);
 
 
-	ReleaseDC(globalHwnd, windowDC);
+	ReleaseDC(hGlobalRenderWindow, windowDC);
 
 	return EXIT_SUCCESS;
 }
@@ -131,38 +142,87 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	InitZoomContext();
 
-	MSG  msg;
-	ATOM aRegistrationResult = RegisterWindowClass(hInstance);
-	globalHwnd = CreateWindowEx
+	if (!RegisterWindowClass(hInstance, RenderWindow::WindowProc, RENDER_WINDOW_CLASSNAME))
+	{
+		ShowError(std::format(R"(Window class registration error {}
+File: {}
+Function: {}
+Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
+
+		return EXIT_FAILURE;
+	}
+	if (!RegisterWindowClass(hInstance, RenderWindow::WindowProc, MENU_WINDOW_CLASSNAME))
+	{
+		ShowError(std::format(R"(Window class registration error {}
+File: {}
+Function: {}
+Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
+
+		return EXIT_FAILURE;
+	}
+
+
+
+
+	hGlobalRenderWindow = CreateWindowEx
 	(
 		WS_EX_LAYERED | // Required style to render the magnification correctly
 		WS_EX_TOPMOST | // Always-on-top
 		WS_EX_TRANSPARENT, // Click-through
-		WINDOW_CLASSNAME,
-		WINDOW_NAME,
+		RENDER_WINDOW_CLASSNAME,
+		RENDER_WINDOW_NAME,
 		WS_CLIPCHILDREN | // For no drawing inside main window
 		WS_POPUP, // Removes titlebar and borders - simply a bare window
 		0,0,
 		zoomContext.screenW, zoomContext.screenH,
 		NULL, NULL, hInstance, NULL
 	);
-
-	if (globalHwnd == NULL)
+	if (hGlobalRenderWindow == NULL)
 	{
-		{
-			std::string errorMessage = std::format(R"(Window creating error {}
+		ShowError(std::format(R"(Window creating error {}
 File: {}
 Function: {}
-Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__);
-			MessageBox(NULL, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
-		}
+Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
+		
 		return EXIT_FAILURE;
 	}
-
 	// Make the window fully opaque.
-	SetLayeredWindowAttributes(globalHwnd, 0, 120, LWA_ALPHA);
-	ShowWindow(globalHwnd, nCmdShow);
-	UpdateWindow(globalHwnd);
+	SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 120, LWA_ALPHA);
+	ShowWindow(hGlobalRenderWindow, nCmdShow);
+	UpdateWindow(hGlobalRenderWindow);
+
+
+	{
+		// For clear stack
+		int wX = int(zoomContext.screenW * 0.2), wY = 0, wWidth = int(zoomContext.screenW * 0.6)  /*80% of srceen width*/, wHeight = 96;
+		hGlobalMenuWindow = CreateWindowEx
+		(
+			WS_EX_TOPMOST, // Always-on-top
+			MENU_WINDOW_CLASSNAME,
+			MENU_WINDOW_NAME,
+			WS_OVERLAPPED |          // Базовый стиль окна
+			WS_CAPTION |            // Заголовок окна
+			WS_SYSMENU,             // Системное меню (только кнопка закрытия)
+			wX, wY,
+			wWidth, wHeight,
+			NULL, NULL, hInstance, NULL
+		);
+	}
+	if (hGlobalMenuWindow == NULL)
+	{
+		ShowError(std::format(R"(Window creating error {}
+File: {}
+Function: {}
+Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
+
+		return EXIT_FAILURE;
+	}
+	ShowWindow(hGlobalMenuWindow, nCmdShow);
+
+
+
+
+
 
 
 	// Create render thread
@@ -170,6 +230,7 @@ Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__);
 	HANDLE hThread = CreateThread(NULL, 0x1000, RenderThread, &zoomContext, 0, &RenderThreadId);
 	
 
+	MSG  msg;
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	{
 		TranslateMessage(&msg);
