@@ -12,7 +12,8 @@ struct ZoomContext
 	int screenH;
 
 	// Logic
+	volatile BOOL isRunning = TRUE;
 	volatile LONG zoom = 1U;
-	volatile RECT zoomRect {NULL};
+	RECT zoomRect {NULL};
 	POINT mousePos {NULL};
 };

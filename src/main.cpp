@@ -39,6 +39,25 @@ ATOM RegisterWindowClass(HINSTANCE hInstance)
 	return RegisterClassEx(&wcex);
 }
 
+LPDWORD RenderThreadId;
+DWORD RenderThread(LPVOID lpThreadParameter)
+{
+	ZoomContext* zoomContext = static_cast<ZoomContext*>(lpThreadParameter);
+	if (zoomContext == nullptr)
+	{
+		{
+			std::string errorMessage = std::format(R"(zoom context is not defined. Send issue for repozitory
+File: {}
+Function: {}
+Line: {})", __FILE__, __FUNCTION__, __LINE__);
+			MessageBox(NULL, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
+		}
+		exit(EXIT_FAILURE);
+	}
+
+	return EXIT_SUCCESS;
+}
+
 int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 						_In_opt_ HINSTANCE hPrevInstance,
 						_In_ LPWSTR lpCmdLine,
@@ -47,13 +66,10 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 	ZoomContext& zoomContext = Global::getInstance().getZoomContext();
 	hInst = hInstance;
 	if (CheckIsRunning())
-		return 1;
+		return EXIT_FAILURE;
 	
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	InitZoomContext();
-	// Magnifer API initialization
-	if(!MagInitialize())
-		return 1;
 
 	MSG  msg;
 	ATOM aRegistrationResult = RegisterWindowClass(hInstance);
@@ -77,13 +93,17 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 		std::string message = std::format("Error code: {}", GetLastError());
 		MessageBox(NULL, message.c_str(), "Error", MB_ICONERROR | MB_OK);
 		MagUninitialize();
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	// Make the window fully opaque.
-	SetLayeredWindowAttributes(globalHwnd, 0, 255, LWA_ALPHA);
+	SetLayeredWindowAttributes(globalHwnd, 0, 120, LWA_ALPHA);
 	ShowWindow(globalHwnd, nCmdShow);
 	UpdateWindow(globalHwnd);
+
+
+	// Create render thread
+	HANDLE hThread = CreateThread(NULL, 0x1000, RenderThread, &zoomContext, 0, RenderThreadId);
 	
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
@@ -91,4 +111,6 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+
+	return EXIT_SUCCESS;
 }

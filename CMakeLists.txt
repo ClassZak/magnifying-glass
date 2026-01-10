@@ -68,7 +68,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	uuid.lib
 	odbc32.lib
 	odbccp32.lib
-	Magnification.lib
 )
 
 
