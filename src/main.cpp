@@ -91,7 +91,7 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 	if (globalHwnd == NULL)
 	{
 		{
-			std::string errorMessage = std::format(R"(Error creating window {}
+			std::string errorMessage = std::format(R"(Window creating error {}
 File: {}
 Function: {}
 Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__);
