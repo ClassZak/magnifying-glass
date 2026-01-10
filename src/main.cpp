@@ -90,9 +90,13 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 
 	if (globalHwnd == NULL)
 	{
-		std::string message = std::format("Error code: {}", GetLastError());
-		MessageBox(NULL, message.c_str(), "Error", MB_ICONERROR | MB_OK);
-		MagUninitialize();
+		{
+			std::string errorMessage = std::format(R"(Error creating window {}
+File: {}
+Function: {}
+Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__);
+			MessageBox(NULL, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
+		}
 		return EXIT_FAILURE;
 	}
 
