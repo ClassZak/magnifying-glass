@@ -7,8 +7,7 @@ class Global
 {
 	Global();
 
-	LONG _zoom = 0.f;
-	ZoomContext* _zoomContext;
+	ZoomContext* _zoomContext; // Inits in constructor
 public:
 	Global(const Global&) = delete;
 	Global& operator = (const Global&) = delete;
@@ -19,10 +18,6 @@ public:
 		return instance;
 	}
 
-	LONG& getZoom()
-	{
-		return _zoom;
-	}
 	ZoomContext& getZoomContext() noexcept
 	{
 		return *_zoomContext;

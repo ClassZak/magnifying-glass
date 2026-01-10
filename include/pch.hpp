@@ -14,6 +14,7 @@
 #include <wincodec.h>
 #include <threadpoolapiset.h>
 #include <shellapi.h>
+#include <timeapi.h>
 
 
 // WinRT

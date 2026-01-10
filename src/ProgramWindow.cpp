@@ -1,4 +1,6 @@
 #include "ProgramWindow.hpp"
+#include "Global.hpp"
+#include "ZoomContext.hpp"
 
 ProgramWindowWnd::ProgramWindowWnd()
 {
@@ -41,6 +43,8 @@ LRESULT ProgramWindowWnd::ProgramWindowWndProc(HWND hwnd, UINT msg, WPARAM wPara
 		}
 		case WM_DESTROY:
 		{
+			ZoomContext& zoomContex = Global::getInstance().getZoomContext();
+			zoomContex.isRunning = FALSE;
 			PostQuitMessage(0);
 			break;
 		}

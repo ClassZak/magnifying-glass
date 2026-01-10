@@ -6,8 +6,6 @@
 #include "ProgramWindow.hpp"
 #include "ZoomContext.hpp"
 
-HHOOK hMouseHook;
-HINSTANCE hInst;
 HWND globalHwnd = NULL;
 
 #define WINDOW_CLASSNAME "magnifying-glass"
@@ -16,12 +14,25 @@ HWND globalHwnd = NULL;
 void InitZoomContext()
 {
 	ZoomContext& zoomContext = Global::getInstance().getZoomContext();
+
+	zoomContext.screenDC = GetDC(NULL);
+	zoomContext.memDC = CreateCompatibleDC(zoomContext.screenDC);
+
 	zoomContext.screenW = GetSystemMetrics(SM_CXSCREEN);
 	zoomContext.screenH = GetSystemMetrics(SM_CYSCREEN);
-	
-	zoomContext.zoomRect.left = zoomContext.zoomRect.top = 0;
-	zoomContext.zoomRect.right = zoomContext.screenW;
-	zoomContext.zoomRect.bottom = zoomContext.screenH;
+
+	zoomContext.srcBitmap = 
+	CreateCompatibleBitmap
+	(
+		zoomContext.screenDC,
+		zoomContext.screenW,
+		zoomContext.screenH
+	);
+
+	zoomContext.oldBitmap = (HBITMAP)SelectObject(zoomContext.memDC, zoomContext.srcBitmap);
+
+	zoomContext.zoom = 1;
+	zoomContext.isRunning = TRUE;
 }
 
 ATOM RegisterWindowClass(HINSTANCE hInstance)
@@ -39,7 +50,7 @@ ATOM RegisterWindowClass(HINSTANCE hInstance)
 	return RegisterClassEx(&wcex);
 }
 
-LPDWORD RenderThreadId;
+DWORD RenderThreadId;
 DWORD RenderThread(LPVOID lpThreadParameter)
 {
 	ZoomContext* zoomContext = static_cast<ZoomContext*>(lpThreadParameter);
@@ -55,6 +66,56 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 		exit(EXIT_FAILURE);
 	}
 
+	HDC windowDC = GetDC(globalHwnd);
+
+	timeBeginPeriod(1);
+	while (zoomContext->isRunning)
+	{
+		DWORD startTime = timeGetTime();
+
+		BitBlt
+		(
+			zoomContext->memDC,
+			0, 0, zoomContext->screenW, zoomContext->screenH,
+			zoomContext->screenDC,
+			0, 0,
+			SRCCOPY
+		);
+
+		RECT rc;
+		GetClientRect(globalHwnd, &rc);
+		long& targetW = rc.right, targetH = rc.bottom;
+		LONG zoom = zoomContext->zoom;
+
+
+		int srcW = targetW / zoom;
+		int srcH = targetH / zoom;
+
+		int srcX = (zoomContext->screenW / 2) - (srcW / 2);
+		int srcY = (zoomContext->screenH / 2) - (srcH / 2);
+
+		SetStretchBltMode(windowDC, COLORONCOLOR); // Without blurring
+
+		StretchBlt
+		(
+			windowDC,
+			0, 0,
+			targetW, targetH,
+			zoomContext->memDC,
+			srcX, srcY,
+			srcW, srcH,
+			SRCCOPY
+		);
+
+		DWORD elapsedTime = timeGetTime() - startTime;
+		if (elapsedTime < 16)
+			Sleep(16 - elapsedTime);
+	}
+	timeEndPeriod(1);
+
+
+	ReleaseDC(globalHwnd, windowDC);
+
 	return EXIT_SUCCESS;
 }
 
@@ -64,7 +125,6 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 						_In_ int nCmdShow)
 {
 	ZoomContext& zoomContext = Global::getInstance().getZoomContext();
-	hInst = hInstance;
 	if (CheckIsRunning())
 		return EXIT_FAILURE;
 	
@@ -81,8 +141,7 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 		WINDOW_CLASSNAME,
 		WINDOW_NAME,
 		WS_CLIPCHILDREN | // For no drawing inside main window
-		WS_POPUP | // Removes titlebar and borders - simply a bare window
-		WS_BORDER, // Adds a 1-pixel border for tracking the edges - aesthetic
+		WS_POPUP, // Removes titlebar and borders - simply a bare window
 		0,0,
 		zoomContext.screenW, zoomContext.screenH,
 		NULL, NULL, hInstance, NULL
@@ -107,7 +166,8 @@ Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__);
 
 
 	// Create render thread
-	HANDLE hThread = CreateThread(NULL, 0x1000, RenderThread, &zoomContext, 0, RenderThreadId);
+	RenderThreadId = 0;
+	HANDLE hThread = CreateThread(NULL, 0x1000, RenderThread, &zoomContext, 0, &RenderThreadId);
 	
 
 	while (GetMessage(&msg, NULL, 0, 0)) 
