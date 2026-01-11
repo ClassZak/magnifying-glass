@@ -14,7 +14,7 @@ HWND hGlobalMenuWindow = NULL;
 #define RENDER_WINDOW_CLASSNAME "render-window"
 #define RENDER_WINDOW_NAME RENDER_WINDOW_CLASSNAME
 #define MENU_WINDOW_CLASSNAME "menu-window"
-#define MENU_WINDOW_NAME RENDER_WINDOW_CLASSNAME
+#define MENU_WINDOW_NAME MENU_WINDOW_CLASSNAME
 
 
 void InitZoomContext()
@@ -84,6 +84,7 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 	{
 		DWORD startTime = timeGetTime();
 
+		SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 0, LWA_ALPHA);
 		BitBlt
 		(
 			zoomContext->memDC,
@@ -92,6 +93,7 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 			0, 0,
 			SRCCOPY
 		);
+		SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 255, LWA_ALPHA);
 
 		RECT rc;
 		GetClientRect(hGlobalRenderWindow, &rc);
@@ -117,10 +119,8 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 			srcW, srcH,
 			SRCCOPY
 		);
-
 		DWORD elapsedTime = timeGetTime() - startTime;
-		if (elapsedTime < 16)
-			Sleep(16 - elapsedTime);
+		Sleep(1000);
 	}
 	timeEndPeriod(1);
 
@@ -151,7 +151,7 @@ Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
 
 		return EXIT_FAILURE;
 	}
-	if (!RegisterWindowClass(hInstance, RenderWindow::WindowProc, MENU_WINDOW_CLASSNAME))
+	if (!RegisterWindowClass(hInstance, MenuWindow::WindowProc, MENU_WINDOW_CLASSNAME))
 	{
 		ShowError(std::format(R"(Window class registration error {}
 File: {}
@@ -177,7 +177,7 @@ Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
 		zoomContext.screenW, zoomContext.screenH,
 		NULL, NULL, hInstance, NULL
 	);
-	if (hGlobalRenderWindow == NULL)
+	if (!hGlobalRenderWindow)
 	{
 		ShowError(std::format(R"(Window creating error {}
 File: {}
@@ -187,28 +187,28 @@ Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
 		return EXIT_FAILURE;
 	}
 	// Make the window fully opaque.
-	SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 120, LWA_ALPHA);
+	SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 0, LWA_ALPHA);
 	ShowWindow(hGlobalRenderWindow, nCmdShow);
 	UpdateWindow(hGlobalRenderWindow);
 
 
 	{
-		// For clear stack
+		// For clear scopes of visibility
 		int wX = int(zoomContext.screenW * 0.2), wY = 0, wWidth = int(zoomContext.screenW * 0.6)  /*80% of srceen width*/, wHeight = 96;
 		hGlobalMenuWindow = CreateWindowEx
 		(
 			WS_EX_TOPMOST, // Always-on-top
 			MENU_WINDOW_CLASSNAME,
 			MENU_WINDOW_NAME,
-			WS_OVERLAPPED |          // Базовый стиль окна
-			WS_CAPTION |            // Заголовок окна
-			WS_SYSMENU,             // Системное меню (только кнопка закрытия)
+			WS_OVERLAPPED | // Base style
+			WS_CAPTION | // Window caption
+			WS_SYSMENU, // System memu. Close button only
 			wX, wY,
 			wWidth, wHeight,
 			NULL, NULL, hInstance, NULL
 		);
 	}
-	if (hGlobalMenuWindow == NULL)
+	if (!hGlobalMenuWindow)
 	{
 		ShowError(std::format(R"(Window creating error {}
 File: {}

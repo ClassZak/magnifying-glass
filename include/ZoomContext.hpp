@@ -16,4 +16,7 @@ struct ZoomContext
 	volatile LONG zoom = 1U;
 	RECT zoomRect {NULL};
 	POINT mousePos {NULL};
+
+
+	static const LONG MAX_ZOOM;
 };

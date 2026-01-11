@@ -17,7 +17,7 @@ LRESULT RenderWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 		// Draw border for magnify window
 		case WM_PAINT:
 		{
-			PAINTSTRUCT ps;
+			/*PAINTSTRUCT ps;
 			RECT rWindowRect;
 			GetClientRect(hwnd, &rWindowRect);
 			HDC hdc = BeginPaint(hwnd, &ps);
@@ -36,7 +36,7 @@ LRESULT RenderWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 			DeleteObject(hPen);
 
 
-			EndPaint(hwnd, &ps);
+			EndPaint(hwnd, &ps);*/
 			return 0;
 			break;
 		}
