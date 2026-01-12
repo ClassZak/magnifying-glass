@@ -22,5 +22,4 @@ public:
 	{
 		return *_zoomContext;
 	}
-	
 };
