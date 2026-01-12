@@ -57,6 +57,25 @@ LRESULT MenuWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 			if (!creatingWindow)
 				exit(EXIT_FAILURE);
 
+			{
+				// For clear scopes of visibility
+				int windowWidth = (int(Global::getInstance().getZoomContext().screenW * 0.6));
+				int leftSide = 196;
+				int labelPos = leftSide + (windowWidth - leftSide) / 2 - 32;
+				creatingWindow = CreateWindowExA
+				(
+					0L,
+					"static",
+					"100%",
+					WS_VISIBLE | WS_CHILD | SS_CENTER,
+					labelPos, 24,
+					64, 16,
+					hwnd, NULL, NULL, NULL
+				);
+				if (!creatingWindow)
+					exit(EXIT_FAILURE);
+			}
+
 			break;
 		}
 		// Draw border for magnify window

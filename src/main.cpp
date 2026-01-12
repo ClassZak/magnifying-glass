@@ -186,7 +186,7 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 
 	{
 		// For clear scopes of visibility
-		int wX = int(zoomContext.screenW * 0.2), wY = 0, wWidth = int(zoomContext.screenW * 0.6)  /*80% of srceen width*/, wHeight = 96;
+		int wX = int(zoomContext.screenW * 0.2), wY = 0, wWidth = int(zoomContext.screenW * 0.6)  /*60% of srceen width*/, wHeight = 102;
 		hGlobalMenuWindow = CreateWindowEx
 		(
 			WS_EX_TOPMOST, // Always-on-top
