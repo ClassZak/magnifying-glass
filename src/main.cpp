@@ -84,7 +84,6 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 	{
 		DWORD startTime = timeGetTime();
 
-		SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 0, LWA_ALPHA);
 		BitBlt
 		(
 			zoomContext->memDC,
@@ -93,7 +92,6 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 			0, 0,
 			SRCCOPY
 		);
-		SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 255, LWA_ALPHA);
 
 		RECT rc;
 		GetClientRect(hGlobalRenderWindow, &rc);
@@ -120,7 +118,8 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 			SRCCOPY
 		);
 		DWORD elapsedTime = timeGetTime() - startTime;
-		Sleep(1000);
+		if (elapsedTime < 16)
+			Sleep(16 - elapsedTime);
 	}
 	timeEndPeriod(1);
 
@@ -187,7 +186,12 @@ Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
 		return EXIT_FAILURE;
 	}
 	// Make the window fully opaque.
-	SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 0, LWA_ALPHA);
+	SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 255, LWA_ALPHA);
+	SetWindowDisplayAffinity
+	(
+		hGlobalRenderWindow,
+		WDA_EXCLUDEFROMCAPTURE
+	);
 	ShowWindow(hGlobalRenderWindow, nCmdShow);
 	UpdateWindow(hGlobalRenderWindow);
 
@@ -217,6 +221,11 @@ Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
 
 		return EXIT_FAILURE;
 	}
+	SetWindowDisplayAffinity
+	(
+		hGlobalMenuWindow,
+		WDA_EXCLUDEFROMCAPTURE
+	);
 	ShowWindow(hGlobalMenuWindow, nCmdShow);
 
 
