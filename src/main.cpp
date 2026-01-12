@@ -93,17 +93,40 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 			SRCCOPY
 		);
 
-		RECT rc;
-		GetClientRect(hGlobalRenderWindow, &rc);
-		long& targetW = rc.right, targetH = rc.bottom;
+		RECT rcClienetArea;
+		GetClientRect(hGlobalRenderWindow, &rcClienetArea);
 		LONG zoom = zoomContext->zoom;
 
+		// Get cursor position
+		POINT pCursorPos;
+		GetCursorPos(&pCursorPos);
+		int srcW = zoomContext->screenW / zoom;
+		int srcH = zoomContext->screenH / zoom;
+		int srcX = pCursorPos.x - (srcW / 2);
+		int srcY = pCursorPos.y - (srcH / 2);
 
-		int srcW = targetW / zoom;
-		int srcH = targetH / zoom;
+		POINT pLeftTopCorner { srcX, srcY };
+		POINT pRightBottomCorner { srcX + srcW, srcY + srcH };
 
-		int srcX = (zoomContext->screenW / 2) - (srcW / 2);
-		int srcY = (zoomContext->screenH / 2) - (srcH / 2);
+		// correction for projection on the screen
+		int correctionX = 0, correctionY = 0;
+		// correction factors will be positive
+		if (pLeftTopCorner.x < 0)
+			correctionX = abs(pLeftTopCorner.x);
+		if (pLeftTopCorner.y < 0)
+			correctionY = abs(pLeftTopCorner.y);
+		// correction factors will be negative
+		if (pRightBottomCorner.x > zoomContext->screenW)
+			correctionX = -(pRightBottomCorner.x - zoomContext->screenW);
+		if (pRightBottomCorner.y > zoomContext->screenH)
+			correctionY = -(pRightBottomCorner.y - zoomContext->screenH);
+
+		RECT rSrc
+		{
+			pLeftTopCorner.x		+ correctionX, pLeftTopCorner.y		+ correctionY,
+			pRightBottomCorner.x	+ correctionX, pRightBottomCorner.y	+ correctionY
+		};
+
 
 		SetStretchBltMode(windowDC, COLORONCOLOR); // Without blurring
 
@@ -111,9 +134,9 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 		(
 			windowDC,
 			0, 0,
-			targetW, targetH,
+			zoomContext->screenW, zoomContext->screenH,
 			zoomContext->memDC,
-			srcX, srcY,
+			rSrc.left, rSrc.top,
 			srcW, srcH,
 			SRCCOPY
 		);
