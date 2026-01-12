@@ -2,7 +2,6 @@
 #include "pch.hpp"
 #include "CheckIsRunning.hpp"
 #include "Global.hpp"
-#include "CheckPolicy.hpp"
 #include "MenuWindow.hpp"
 #include "RenderWindow.hpp"
 #include "ZoomContext.hpp"
