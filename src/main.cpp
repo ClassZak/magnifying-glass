@@ -65,17 +65,6 @@ DWORD RenderThreadId;
 DWORD RenderThread(LPVOID lpThreadParameter)
 {
 	ZoomContext* zoomContext = static_cast<ZoomContext*>(lpThreadParameter);
-	if (zoomContext == nullptr)
-	{
-		{
-			std::string errorMessage = std::format(R"(zoom context is not defined. Send issue for repozitory
-File: {}
-Function: {}
-Line: {})", __FILE__, __FUNCTION__, __LINE__);
-			MessageBox(NULL, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
-		}
-		exit(EXIT_FAILURE);
-	}
 
 	HDC windowDC = GetDC(hGlobalRenderWindow);
 
@@ -165,23 +154,9 @@ int APIENTRY wWinMain(	_In_ HINSTANCE hInstance,
 	InitZoomContext();
 
 	if (!RegisterWindowClass(hInstance, RenderWindow::WindowProc, RENDER_WINDOW_CLASSNAME))
-	{
-		ShowError(std::format(R"(Window class registration error {}
-File: {}
-Function: {}
-Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
-
 		return EXIT_FAILURE;
-	}
 	if (!RegisterWindowClass(hInstance, MenuWindow::WindowProc, MENU_WINDOW_CLASSNAME))
-	{
-		ShowError(std::format(R"(Window class registration error {}
-File: {}
-Function: {}
-Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
-
 		return EXIT_FAILURE;
-	}
 
 
 
@@ -199,15 +174,6 @@ Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
 		zoomContext.screenW, zoomContext.screenH,
 		NULL, NULL, hInstance, NULL
 	);
-	if (!hGlobalRenderWindow)
-	{
-		ShowError(std::format(R"(Window creating error {}
-File: {}
-Function: {}
-Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
-		
-		return EXIT_FAILURE;
-	}
 	// Make the window fully opaque.
 	SetLayeredWindowAttributes(hGlobalRenderWindow, 0, 255, LWA_ALPHA);
 	SetWindowDisplayAffinity
@@ -234,15 +200,6 @@ Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
 			wWidth, wHeight,
 			NULL, NULL, hInstance, NULL
 		);
-	}
-	if (!hGlobalMenuWindow)
-	{
-		ShowError(std::format(R"(Window creating error {}
-File: {}
-Function: {}
-Line: {})", GetLastError(), __FILE__, __FUNCTION__, __LINE__));
-
-		return EXIT_FAILURE;
 	}
 	SetWindowDisplayAffinity
 	(

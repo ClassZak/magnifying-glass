@@ -31,14 +31,7 @@ LRESULT MenuWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 				hwnd, (HMENU)IDC_BUTTON_MENU_WINDOW_ADD_ZOOM, NULL, NULL
 			);
 			if (!creatingWindow)
-			{
-				std::string errorMessage = std::format(R"(Error creating button
-File: {}
-Function: {}
-Line: {})", __FILE__, __FUNCTION__, __LINE__);
-				MessageBox(NULL, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
 				exit(EXIT_FAILURE);
-			}
 			creatingWindow = CreateWindowExA
 			(
 				0L,
@@ -50,14 +43,7 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 				hwnd, (HMENU)IDC_BUTTON_MENU_WINDOW_SUB_ZOOM, NULL, NULL
 			);
 			if (!creatingWindow)
-			{
-				std::string errorMessage = std::format(R"(Error creating button
-File: {}
-Function: {}
-Line: {})", __FILE__, __FUNCTION__, __LINE__);
-				MessageBox(NULL, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
 				exit(EXIT_FAILURE);
-			}
 			creatingWindow = CreateWindowExA
 			(
 				0L,
@@ -69,14 +55,8 @@ Line: {})", __FILE__, __FUNCTION__, __LINE__);
 				hwnd, (HMENU)IDC_BUTTON_MENU_WINDOW_RES_ZOOM, NULL, NULL
 			);
 			if (!creatingWindow)
-			{
-				std::string errorMessage = std::format(R"(Error creating button
-File: {}
-Function: {}
-Line: {})", __FILE__, __FUNCTION__, __LINE__);
-				MessageBox(NULL, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
 				exit(EXIT_FAILURE);
-			}
+
 			break;
 		}
 		// Draw border for magnify window
