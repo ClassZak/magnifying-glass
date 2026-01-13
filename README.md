@@ -6,6 +6,7 @@ Simple full screen magnifier for Windows.
 
 This program does not supporting mouse cursor position correction after zoom.
 So, you must to use it for screen scale only without mouse clicks.
+Max zoom factor: X16
 
 ## 🛠 Dependencies
 
