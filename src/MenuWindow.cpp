@@ -15,6 +15,7 @@
 
 LRESULT MenuWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	static HWND hZoomLabel = NULL;
 	switch (msg)
 	{
 		case WM_CREATE:
@@ -56,7 +57,7 @@ LRESULT MenuWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 			);
 			if (!creatingWindow)
 				exit(EXIT_FAILURE);
-
+			
 			{
 				// For clear scopes of visibility
 				int windowWidth = (int(Global::getInstance().getZoomContext().screenW * 0.6));
@@ -74,6 +75,7 @@ LRESULT MenuWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 				);
 				if (!creatingWindow)
 					exit(EXIT_FAILURE);
+				hZoomLabel = creatingWindow;
 			}
 
 			break;
@@ -115,7 +117,10 @@ LRESULT MenuWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 					if (zoomContext.zoom >= ZoomContext::MAX_ZOOM)
 						return DefWindowProc(hwnd, msg, wParam, lParam);
 					else
+					{
 						zoomContext.zoom <<= 1;
+						UpdateZoomLabel(hZoomLabel);
+					}
 					break;
 				}
 				case IDC_BUTTON_MENU_WINDOW_SUB_ZOOM:
@@ -123,12 +128,16 @@ LRESULT MenuWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 					if (zoomContext.zoom <= 1L)
 						return DefWindowProc(hwnd, msg, wParam, lParam);
 					else
+					{
 						zoomContext.zoom >>= 1;
+						UpdateZoomLabel(hZoomLabel);
+					}
 					break;
 				}
 				case IDC_BUTTON_MENU_WINDOW_RES_ZOOM:
 				{
 					zoomContext.zoom = 1L;
+					UpdateZoomLabel(hZoomLabel);
 					break;
 				}
 				default:
@@ -149,3 +158,22 @@ LRESULT MenuWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 	
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
+
+
+
+
+VOID MenuWindow::UpdateZoomLabel(HWND hLabel)
+{
+	ZoomContext& zoomContex = Global::getInstance().getZoomContext();
+	static const int elCount = (int)std::floor(std::log10(zoomContex.MAX_ZOOM)) + 1 + 3 + 1; // symbols 00% and \0
+	char* cNewText = (char*)malloc(elCount);
+	if(!cNewText)
+		exit(1);
+	
+	sprintf_s(cNewText, elCount, "%d%%", zoomContex.zoom * 100);
+	SendMessage(hLabel, WM_SETTEXT, 0, (LPARAM)cNewText);
+	free(cNewText);
+}
+
+
+
