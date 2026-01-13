@@ -5,6 +5,7 @@
 #include "MenuWindow.hpp"
 #include "RenderWindow.hpp"
 #include "ZoomContext.hpp"
+#include "../resource.h"
 
 HWND hGlobalRenderWindow = NULL;
 HWND hGlobalMenuWindow = NULL;
@@ -53,6 +54,7 @@ static inline ATOM RegisterWindowClass(HINSTANCE hInstance, WNDPROC wndProc, LPC
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc = wndProc;
 	wcex.hInstance = hInstance;
+	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
 	wcex.hCursor = LoadCursor(0, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(1 + COLOR_BTNFACE);
 	wcex.lpszClassName = lpClassName;

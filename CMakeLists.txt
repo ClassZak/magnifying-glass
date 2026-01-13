@@ -20,11 +20,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SOURCES 
+	${CMAKE_SOURCE_DIR}/resource.h
+	
 	${CMAKE_SOURCE_DIR}/src/main.cpp
 	${CMAKE_SOURCE_DIR}/src/Global.cpp
 	${CMAKE_SOURCE_DIR}/src/MenuWindow.cpp
 	${CMAKE_SOURCE_DIR}/src/RenderWindow.cpp
-	${CMAKE_SOURCE_DIR}/src/resource.h
 	${CMAKE_SOURCE_DIR}/src/ZoomContext.cpp
 )
 
